@@ -79,22 +79,50 @@ body {
 }
 
 .nav-buttons button {
+    position: relative;
+    overflow: hidden;
     font-size: x-large;
     padding: 5px 20px;
     border-radius: 6px;
     font-family: 'line-seed-thin';
     color: white;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease;
 }
 
-#jumble{
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        transparent
+    );
+    transition: left 0.6s ease;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+#jumble {
     background: rgb(245, 123, 123);
 }
 
-#prev{
+#prev {
     background: rgb(123, 131, 245);
 }
 
-#next{
+#next {
     background: rgb(70, 230, 94);
 }
-
