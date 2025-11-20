@@ -1,4 +1,6 @@
-# Puzzle Solver using Informed AI - A* Algorithm
+# Puzzle Solver using Informed AI - A* Algorithm (CLI Version)
+
+Check Web-Implementation Here: https://github.com/jayant1211/8-Puzzle-Solver-A-Star
 
 This project contains an implementation of the A* algorithm applied to solve the classic 8-Puzzle problem. 
 
