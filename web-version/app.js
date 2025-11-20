@@ -5,63 +5,74 @@ const postImage = document.querySelector('.post-state');
 const preCanvas = document.querySelector('#previewCanvas');
 const jumble = document.querySelector('#jumble');
 const solve_button = document.querySelector('#solve_button');
+const nextBtn = document.querySelector('#next');
+const prevBtn = document.querySelector('#prev');
+const newImgBtn = document.getElementById('new_image');
+import { solve, reconstructPath } from "./a_star.js";
 
-let originalTiles = null;  
+let originalTiles = null;
 let intial_state = null;
-// const goal_state_matrix = [[1,2,3],
-//                     [4,5,6],
-//                     [7,8,0]];
-
 const goal_state = [1,2,3,4,5,6,7,8,0];
-const log_states = false; //logging all states
+const log_states = false;
+let path = [];
+let currState = 0;
 
-img_placeholder.addEventListener('click', () => {
+img_placeholder.addEventListener('click', () => imageInput.click());
+
+newImgBtn.addEventListener('click', () => {
+    imageInput.value = "";
     imageInput.click();
 });
-
-import { solve, reconstructPath } from "./a_star.js";
 
 imageInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    postImage.classList.add("hidden");
+    postImage.classList.remove("grid");
+    preCanvas.classList.add("hidden");
+    preImage.forEach(x => x.classList.remove('hidden'));
+
+    jumble.classList.add('disabled');
+    solve_button.classList.add('disabled');
+    nextBtn.classList.add('disabled');
+    prevBtn.classList.add('disabled');
+
+    newImgBtn.classList.remove('hidden');
+
+    currState = 0;
+    path = [];
+    originalTiles = null;
+
     const url = URL.createObjectURL(file);
-
-    preImage.forEach(x => x.classList.add('hidden'));
-    preCanvas.classList.remove('hidden');
-
     const imgEl = new Image();
     imgEl.src = url;
 
-    imgEl.onload = async () => {
-        const tryShowOnCanvas = () => {
+    imgEl.onload = () => {
+        const show = () => {
             if (typeof cv === 'undefined') {
-                setTimeout(tryShowOnCanvas, 100);
+                setTimeout(show, 100);
                 return;
             }
+            const srcMat = cv.imread(imgEl);
+            const TARGET = 399;
+            const dsize = new cv.Size(TARGET, TARGET);
+            const dstMat = new cv.Mat();
+            cv.resize(srcMat, dstMat, dsize, 0, 0, cv.INTER_AREA);
 
-            try {
-                const srcMat = cv.imread(imgEl);
-                const TARGET = 399;
-                const dsize = new cv.Size(TARGET, TARGET);
+            preImage.forEach(x => x.classList.add('hidden'));
+            preCanvas.classList.remove('hidden');
 
-                const dstMat = new cv.Mat();
-                cv.resize(srcMat, dstMat, dsize, 0, 0, cv.INTER_AREA);
+            preCanvas.width = TARGET;
+            preCanvas.height = TARGET;
+            cv.imshow('previewCanvas', dstMat);
 
-                preCanvas.width = TARGET;
-                preCanvas.height = TARGET;
-                cv.imshow('previewCanvas', dstMat);
-
-                srcMat.delete();
-                dstMat.delete();
-            } catch (err) {
-                console.error('Error processing image with OpenCV:', err);
-            }
+            srcMat.delete();
+            dstMat.delete();
         };
 
         jumble.classList.remove('disabled');
-        tryShowOnCanvas();
-        originalTiles = null; // reset for new image load
+        show();
     };
 });
 
@@ -76,17 +87,14 @@ function inversionCount(arr) {
 }
 
 function isSolvable(arr) {
-    return inversionCount(arr) % 2 === 0; //solvable inversion for 3x3 has to be in even parity
+    return inversionCount(arr) % 2 === 0;
 }
-
 
 function splitImageIntoTiles() {
     const src = cv.imread(preCanvas);
-
     const TILE = 3;
     const tileW = preCanvas.width / TILE;
     const tileH = preCanvas.height / TILE;
-
     const tileCanvases = Array.from(document.querySelectorAll(".post-state canvas"));
 
     if (!originalTiles) {
@@ -95,29 +103,17 @@ function splitImageIntoTiles() {
             for (let c = 0; c < TILE; c++) {
                 const rect = new cv.Rect(c * tileW, r * tileH, tileW, tileH);
                 let roi = src.roi(rect);
-
-                // draw text on tile
-                cv.putText(
-                    roi,
-                    `${r * TILE + c + 1}`,               
-                    new cv.Point(20, 40),            
-                    cv.FONT_HERSHEY_SIMPLEX,
-                    1,
-                    new cv.Scalar(0, 255, 0, 255),     
-                    2
-                );
+                cv.putText(roi, `${r * TILE + c + 1}`, new cv.Point(20, 40), cv.FONT_HERSHEY_SIMPLEX, 1, new cv.Scalar(0,255,0,255), 2);
                 const tile = src.roi(rect).clone();
                 originalTiles.push(tile);
             }
         }
     }
 
-    //remove last tile; push blank
     originalTiles.splice(8,1);
     let blank = new cv.Mat(tileH, tileW, cv.CV_8UC3, new cv.Scalar(255,255,255,255));
     originalTiles.push(blank);
 
-    // let shuffle = [0,1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
     let shuffle = null;
     while (true) {
         const candidate = [0,1,2,3,4,5,6,7,8].sort(() => Math.random() - 0.5);
@@ -128,9 +124,8 @@ function splitImageIntoTiles() {
         }
     }
 
+    let temp_intial_state = [];
     const temp_tiles = originalTiles.slice();
-
-    let temp_intial_state = []
 
     tileCanvases.forEach((canvas, i) => {
         canvas.width = tileW;
@@ -140,46 +135,88 @@ function splitImageIntoTiles() {
     });
 
     intial_state = [];
-    for(let i=0;i<9;i++){
-        // let temp = [];
-        // for(let j=0;j<3;j++){
-        //     let s = temp_intial_state[`${3*i + j}`] + 1;
-        //     s = s==9?0:s;
-        //     temp.push(s);
-        // }
-        let s = temp_intial_state[`${i}`] + 1;
-        s = s==9?0:s;
+    for (let i = 0; i < 9; i++) {
+        let s = temp_intial_state[i] + 1;
+        s = s == 9 ? 0 : s;
         intial_state.push(s);
     }
 
-    console.log(`Inital State:\n ${intial_state}`);
-    console.log(`Goal State:\n ${goal_state}`);
-    
     src.delete();
+}
+
+function renderState(state) {
+    const tileCanvases = Array.from(document.querySelectorAll(".post-state canvas"));
+    for (let i = 0; i < 9; i++) {
+        const canvas = tileCanvases[i];
+        const val = state[i];
+        const tileIndex = val === 0 ? 8 : val - 1;
+        cv.imshow(canvas, originalTiles[tileIndex]);
+    }
+}
+
+function highlightChange(prevState, nextState) {
+    const tileCanvases = Array.from(document.querySelectorAll(".post-state canvas"));
+    for (let i = 0; i < 9; i++) tileCanvases[i].classList.remove("highlight");
+
+    let movedIndex = -1;
+    for (let i = 0; i < 9; i++) {
+        if (prevState[i] !== nextState[i]) {
+            movedIndex = i;
+            break;
+        }
+    }
+
+    if (movedIndex !== -1) {
+        const el = tileCanvases[movedIndex];
+        el.classList.add("highlight");
+        setTimeout(() => el.classList.remove("highlight"), 180);
+    }
+}
+
+function syncNavButtons() {
+    prevBtn.classList.toggle("disabled", currState === 0);
+    nextBtn.classList.toggle("disabled", currState === path.length - 1);
+}
+
+function goTo(index) {
+    const prev = path[currState];
+    currState = Math.max(0, Math.min(index, path.length - 1));
+    const next = path[currState];
+    renderState(next);
+    highlightChange(prev, next);
+    syncNavButtons();
 }
 
 jumble.addEventListener("click", () => {
     if (jumble.classList.contains('disabled')) return;
-
     preCanvas.classList.add("hidden");
     postImage.classList.remove("hidden");
     postImage.classList.add("grid");
-
+    document.querySelector('.img-section').classList.add("grid-active");
     void postImage.offsetHeight;
-
     splitImageIntoTiles();
     solve_button.classList.remove('disabled');
 });
 
-solve_button.addEventListener("click", ()=>{
-    if(solve_button.classList.contains('disabled')) {console.log('disbaled'); return;}
+solve_button.addEventListener("click", () => {
+    if (solve_button.classList.contains('disabled')) return;
     jumble.classList.add('disabled');
-    const finalState = solve(intial_state,goal_state, log_states);
-    const path = reconstructPath(finalState);
-    for(const state of path){
-        console.log(state);
-    }
-})
+    const finalState = solve(intial_state, goal_state, log_states);
+    path = reconstructPath(finalState);
+    currState = 0;
+    goTo(0);
+    nextBtn.classList.remove('disabled');
+});
+
+nextBtn.addEventListener("click", () => {
+    if (nextBtn.classList.contains("disabled")) return;
+    goTo(currState + 1);
+});
+
+prevBtn.addEventListener("click", () => {
+    if (prevBtn.classList.contains("disabled")) return;
+    goTo(currState - 1);
+});
 
 function onOpenCvReady() {
     console.log('cv loaded');

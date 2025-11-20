@@ -1,11 +1,3 @@
-Current Issues:
-1. jumbling is cropping some images out. check sizing logic for cropped tiles.
-
-
-
-#TODOS:
-- [ ] make this retro themed 
-
 working principle:
     1. receive image
     2. transform it to fixed 400*400 size
@@ -13,23 +5,18 @@ working principle:
     4. image container in 9 parts
     5. jumble logic:
         same as from python code
-    6. event listeners on arrow key for moving empty space around/surround tiles is better logic
-    7. keep stack of movements
+   
     
-    
-MORE:::
-• Visual indicator for empty tile
-• Step counter and move history
-• Animation toggle for tile movement
-• “Solve” button to run A*
-• Pause/resume solver animation
-• Highlight active tiles
-• Solvability check (inversion count)
-• Unsolvable message display
+• Visual indicator for empty tile - done
+• Step counter and move history - done
+• Animation toggle for tile movement - done
+• “Solve” button to run A* - done
+• Solvability check (inversion count) - done
+
+CAN DO:
+• add keylisteners, use manual keys to move the tile around making it interactive rather just solution
 • Performance stats (time, nodes, solution length)
-• Pixel font and CRT flicker
+• Performance stats (time, nodes, solution length)
 • 8-bit sound effects
-• Restricted retro color palette
 • Save puzzle as JSON/image
 • Load or replay puzzle state
-• Handle image load or format errors

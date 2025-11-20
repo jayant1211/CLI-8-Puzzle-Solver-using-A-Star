@@ -18,9 +18,9 @@ body {
 }
 
 #title {
-    margin-top: 40px;
+    margin-top: 20px;
     font-size: 38px;
-    font-weight: 300;
+    font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
     color: #111;
@@ -108,7 +108,7 @@ body {
     justify-content: space-between;
 }
 
-.nav-buttons button {
+.nav-buttons button, #new_image {
     padding: 8px 20px;
     margin: 2px;
     font-size: 14px;
@@ -143,3 +143,109 @@ body {
 #solve_button { background: #222; }
 #prev { background: #4c6ef5; }
 #next { background: #20c997; }
+
+#new_image{
+    margin-top: 20px;
+    align-self: left;
+    padding: 10px 160px;
+}
+
+.tile {
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.tile.highlight {
+    transform: scale(1.08);
+    box-shadow: 0 0 12px rgba(0,0,0,0.45);
+}
+
+.contact-section {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.contact-text p {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.social-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    transition: transform 0.3s ease, color 0.3s ease;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    color: #000;
+}
+
+.social-link:hover {
+    transform: translateY(-5px);
+    /* border-color: #000; */
+}
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    margin-bottom: 0.5rem;
+}
+
+.social-link span {
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: #000;
+}
+
+/* Social media brand colors on hover */
+.social-link:hover[aria-label="Email"] {
+    color: #ea4335;
+}
+
+.social-link:hover[aria-label="LinkedIn"] {
+    color: #0077b5;
+}
+
+.social-link:hover[aria-label="GitHub"] {
+    color: #333;
+}
+
+.social-link:hover[aria-label="X (Twitter)"] {
+    color: #000;
+}
+
+.social-link:hover[aria-label="Instagram"] {
+    color: #e4405f;
+}
+
+/* Responsive design for contact section */
+@media (max-width: 768px) {
+    .social-icons {
+        gap: 1rem;
+    }
+    
+    .social-link {
+        padding: 0.75rem;
+    }
+    
+    .social-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .contact-text h2 {
+        font-size: 2rem;
+    }
+}
